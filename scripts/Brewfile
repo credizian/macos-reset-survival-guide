@@ -1,0 +1,83 @@
+# =============================================================================
+# Brewfile — curated for clean macOS install
+# Lessons baked in from 2026-05-23 reset (see docs/01-lessons-learned.md)
+#
+# REMINDER: Sign into Mac App Store BEFORE running `brew bundle install` or
+# every `mas` line silently skips. There's no error message.
+# =============================================================================
+
+tap "supabase/tap"
+
+# --- Dev essentials (always install) -----------------------------------------
+brew "awscli"               # AWS CLI
+brew "cloudflared"          # Cloudflare Tunnel client
+brew "ffmpeg"               # Audio/video codec processing
+brew "gh"                   # GitHub CLI
+brew "git"
+brew "git-filter-repo"      # Repo history rewriting
+brew "git-lfs"              # Large file storage
+brew "glab"                 # GitLab CLI
+brew "mas"                  # Mac App Store CLI
+brew "mysql-client"
+brew "openssh"
+brew "pipx"                 # Isolated Python package execution
+brew "poppler"              # PDF rendering library
+brew "rsync"                # GNU rsync — macOS system one is too old (no --info=progress2)
+brew "yarn"
+brew "supabase/tap/supabase"
+
+# --- Runtimes ----------------------------------------------------------------
+brew "node@24"              # Active LTS
+brew "python@3.13"          # Latest stable
+brew "python@3.12"          # Keep for broader compatibility with older packages
+
+# --- GUI apps (casks) --------------------------------------------------------
+# NOTE: docker-desktop requires sudo to pre-create /usr/local/cli-plugins
+# (see restore.sh — it does this for you). mysqlworkbench has NO dash (the
+# dashed name doesn't exist). github cask = GitHub Desktop.
+cask "cursor"
+cask "dbeaver-community"
+cask "docker-desktop"
+cask "firefox"
+cask "github"               # GitHub Desktop
+cask "mysqlworkbench"
+cask "raycast"
+cask "rectangle"
+cask "sublime-text"
+cask "visual-studio-code"
+
+# --- Mac App Store apps ------------------------------------------------------
+# Adjust these to your own preferences — the `mas` IDs are stable.
+# Look up an app's ID: `mas search <name>`
+mas "1Password for Safari", id: 1569813296
+mas "Microsoft Excel", id: 462058435
+mas "Microsoft Outlook", id: 985367838
+mas "Microsoft PowerPoint", id: 462062816
+mas "Microsoft Word", id: 462054704
+mas "OneDrive", id: 823766827
+mas "Telegram", id: 747648890
+mas "The Unarchiver", id: 425424353
+mas "WhatsApp", id: 310633997
+mas "Xcode", id: 497799835
+
+# --- VS Code extensions ------------------------------------------------------
+# Adjust to your stack.
+vscode "amazonwebservices.aws-toolkit-vscode"
+vscode "anthropic.claude-code"
+vscode "esbenp.prettier-vscode"
+vscode "ms-azuretools.vscode-azureappservice"
+vscode "ms-python.python"
+vscode "ms-python.vscode-pylance"
+vscode "redhat.vscode-yaml"
+
+# --- npm globals -------------------------------------------------------------
+# IMPORTANT: brew bundle's npm step runs in a non-interactive shell where
+# node@24 isn't on PATH unless restore.sh exports it explicitly. Otherwise
+# every line below fails with `env: node: No such file or directory`.
+npm "@expo/ngrok"
+npm "@google/clasp"
+npm "acorn"
+npm "aws-cdk"
+npm "firebase-tools"
+npm "pnpm"
+npm "wrangler"
