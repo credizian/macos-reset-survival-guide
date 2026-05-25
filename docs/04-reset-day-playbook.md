@@ -102,10 +102,10 @@ Open and sign into each (in priority order):
 - [ ] **Dropbox** — open app → sign in → re-sync starts
 - [ ] **OneDrive** — sign in if you use it
 - [ ] **1Password** — sign in → enable Safari extension
-- [ ] **GitHub Desktop** — sign in. Then bulk-add repos:
+- [ ] **GitHub Desktop** — sign in. Then bulk-add repos (Desktop must be OPEN and visible, throttle 1.5s — anything less and only the last repo persists to IndexedDB; see lesson 25):
   ```bash
   find ~/a_code_project -maxdepth 3 -name .git -type d | sed 's|/.git$||' |
-    while read r; do github "$r"; sleep 0.3; done
+    while read r; do github "$r"; sleep 1.5; done
   ```
 - [ ] **VS Code** — sign in → enable Settings Sync
 - [ ] **Cursor** — sign in → enable settings sync

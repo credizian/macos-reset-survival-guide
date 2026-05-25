@@ -261,6 +261,23 @@ for host in github.com gitlab.com; do
 done
 echo "    Set perms + added github.com / gitlab.com to known_hosts"
 
+# ---------- 8b. Firefox profile fix for 138+ Profile Groups system ----------
+# Firefox 138+ added a "Profile Groups" SQLite-based picker that ignores
+# profiles.ini. After a restore from a pre-138 backup, the new picker shows
+# only a "Create a profile" button — your restored profiles are invisible.
+# Disable the new picker via user.js in each restored profile dir.
+echo ""
+echo "==> Firefox profile fix (disable Firefox 138+ Profile Groups picker)"
+FF_PROFILES="$HOME/Library/Application Support/Firefox/Profiles"
+if [ -d "$FF_PROFILES" ]; then
+  for prof in "$FF_PROFILES"/*/; do
+    if [ -f "$prof/places.sqlite" ] && [ ! -f "$prof/user.js" ]; then
+      echo 'user_pref("browser.profiles.enabled", false);' > "$prof/user.js"
+    fi
+  done
+  echo "    Wrote user.js to all restored profiles"
+fi
+
 # ---------- 9. Sweep stale .git/*.lock in Dropbox-hosted repos ----------
 # Dropbox sometimes preserves stale lock files from interrupted git
 # operations, blocking commits in any repos kept under Dropbox.
@@ -299,9 +316,11 @@ echo "  1. /usr/bin/ssh-add --apple-use-keychain ~/.ssh/id_ed25519"
 echo "  2. gh auth login"
 echo "  3. gh auth refresh -s admin:public_key"
 echo "  4. gh ssh-key add ~/.ssh/id_ed25519.pub --title \"\$(scutil --get ComputerName)\""
-echo "  5. Launch GitHub Desktop, sign in, then bulk-add repos:"
+echo "  5. Launch GitHub Desktop and SIGN IN first. Then (with Desktop OPEN):"
 echo "       find $CODE_DEST -maxdepth 3 -name .git -type d | sed 's|/.git\$||' |"
-echo "         while read r; do github \"\$r\"; sleep 0.3; done"
+echo "         while read r; do github \"\$r\"; sleep 1.5; done"
+echo "     NOTE: Throttle MUST be ~1.5s and Desktop MUST be visible — anything"
+echo "     less and only the last repo persists to IndexedDB."
 echo "  6. Sign into iCloud (NOT Desktop/Documents sync), Dropbox, etc."
 echo "  7. Open Docker.app once to start the daemon"
 echo "  8. Grant Privacy & Security perms (Full Disk Access, Accessibility)"

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Claude.app Backup Paths</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<nav class="top">
+  <a href="index.html">README</a>
+  <a href="01-lessons-learned.html">Lessons learned</a>
+  <a href="02-cowork-recovery.html">Cowork recovery</a>
+  <a class="current" href="03-claude-app-paths.html">Claude.app paths</a>
+  <a href="04-reset-day-playbook.html">Reset playbook</a>
+</nav>
+<header id="title-block-header">
+<h1 class="title">Claude.app Backup Paths</h1>
+</header>
+<h1 id="claude-desktop--what-to-back-up-what-to-skip">Claude Desktop —
+what to back up, what to skip</h1>
+<p>Claude Desktop is cloud-first for chats, but has a surprising amount
+of local state. Here's the map.</p>
+<h2 id="path-inventory">Path inventory</h2>
+<p>All paths under
+<code>~/Library/Application Support/Claude/</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Size</th>
+<th>Back up?</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>local-agent-mode-sessions/</code></td>
+<td>varies</td>
+<td><strong>YES</strong></td>
+<td>Cowork chats, scheduled tasks, projects, agent state. <strong>Local
+only — not in any cloud.</strong></td>
+</tr>
+<tr>
+<td><code>claude_desktop_config.json</code></td>
+<td>~10 KB</td>
+<td><strong>YES</strong></td>
+<td>Trusted folders list, Chrome extension pairing, browser permissions,
+per-folder permission acks, keyboard shortcuts</td>
+</tr>
+<tr>
+<td><code>Claude Extensions/</code></td>
+<td>varies</td>
+<td><strong>YES</strong></td>
+<td>Installed MCP servers + extension bundles (170+ MB for AWS API MCP
+alone)</td>
+</tr>
+<tr>
+<td><code>Claude Extensions Settings/</code></td>
+<td>small</td>
+<td><strong>YES</strong></td>
+<td>Per-extension config</td>
+</tr>
+<tr>
+<td><code>extensions-installations.json</code></td>
+<td>small</td>
+<td><strong>YES</strong></td>
+<td>Manifest of installed extensions</td>
+</tr>
+<tr>
+<td><code>cowork-enabled-cli-ops.json</code></td>
+<td>tiny</td>
+<td>YES</td>
+<td>Cowork feature flag state</td>
+</tr>
+<tr>
+<td><code>git-worktrees.json</code></td>
+<td>small</td>
+<td>YES</td>
+<td>Claude Code worktree state</td>
+</tr>
+<tr>
+<td><code>window-state.json</code></td>
+<td>tiny</td>
+<td>optional</td>
+<td>UI window positions; cosmetic</td>
+</tr>
+<tr>
+<td><code>bridge-state.json</code></td>
+<td>small</td>
+<td>optional</td>
+<td>Claude in Chrome bridge state</td>
+</tr>
+<tr>
+<td><code>config.json</code></td>
+<td>~4 KB</td>
+<td><strong>NO</strong></td>
+<td>Has OAuth tokens tied to the OLD device. New install will create
+fresh ones — don't overwrite.</td>
+</tr>
+<tr>
+<td><code>vm_bundles/</code></td>
+<td>12 GB</td>
+<td><strong>NO</strong></td>
+<td>Electron VM bundles for code execution. Regenerable. Will rebuild on
+first use.</td>
+</tr>
+<tr>
+<td><code>Cache/</code></td>
+<td>varies</td>
+<td><strong>NO</strong></td>
+<td>Chromium HTTP cache</td>
+</tr>
+<tr>
+<td><code>Code Cache/</code></td>
+<td>varies</td>
+<td><strong>NO</strong></td>
+<td>Same</td>
+</tr>
+<tr>
+<td><code>GPUCache/</code> <code>DawnGraphiteCache/</code>
+<code>DawnWebGPUCache/</code></td>
+<td>varies</td>
+<td><strong>NO</strong></td>
+<td>Graphics caches</td>
+</tr>
+<tr>
+<td><code>IndexedDB/</code></td>
+<td>small</td>
+<td><strong>NO</strong></td>
+<td>Cached cloud data — resyncs on sign-in</td>
+</tr>
+<tr>
+<td><code>Local Storage/leveldb/</code></td>
+<td>small</td>
+<td><strong>NO</strong></td>
+<td>Same</td>
+</tr>
+<tr>
+<td><code>Cookies</code> <code>Cookies-journal</code></td>
+<td>small</td>
+<td><strong>NO</strong></td>
+<td>You'll re-sign-in anyway</td>
+</tr>
+<tr>
+<td><code>Session Storage/</code></td>
+<td>small</td>
+<td><strong>NO</strong></td>
+<td>Per-tab session state, transient</td>
+</tr>
+<tr>
+<td><code>Crashpad/</code></td>
+<td>varies</td>
+<td><strong>NO</strong></td>
+<td>Crash reports</td>
+</tr>
+<tr>
+<td><code>DIPS</code> <code>DIPS-wal</code></td>
+<td>small</td>
+<td><strong>NO</strong></td>
+<td>Bounce-tracking mitigation database, auto-rebuilds</td>
+</tr>
+<tr>
+<td><code>Network Persistent State</code></td>
+<td>small</td>
+<td><strong>NO</strong></td>
+<td>HTTPS connection metadata</td>
+</tr>
+<tr>
+<td><code>extensions-blocklist.json</code></td>
+<td>small</td>
+<td><strong>NO</strong></td>
+<td>Server-managed blocklist, refreshes on its own</td>
+</tr>
+</tbody>
+</table>
+<p>Plus, outside Application Support:</p>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Back up?</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>~/Documents/Claude/Projects/</code></td>
+<td><strong>YES</strong></td>
+<td>Project files referenced by Cowork chats (the "Show in Folder"
+button needs these)</td>
+</tr>
+<tr>
+<td><code>~/Documents/Claude/Scheduled/</code></td>
+<td><strong>YES</strong></td>
+<td>SKILL.md files for scheduled tasks</td>
+</tr>
+<tr>
+<td>macOS Keychain entries for "Anthropic"</td>
+<td>not portable</td>
+<td>Migrate via sign-in — Keychain doesn't survive a reset by
+design</td>
+</tr>
+</tbody>
+</table>
+<h2 id="quick-backup-snippet">Quick backup snippet</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="va">APPSUP</span><span class="op">=</span><span class="st">&quot;</span><span class="va">$HOME</span><span class="st">/Library/Application Support&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="va">CLAUDE_APP</span><span class="op">=</span><span class="st">&quot;</span><span class="va">$APPSUP</span><span class="st">/Claude&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="va">STAGING</span><span class="op">=</span><span class="st">&quot;/path/to/your/backup/staging&quot;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> <span class="st">&quot;</span><span class="va">$STAGING</span><span class="st">/Claude&quot;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Critical data</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="bu">[</span> <span class="ot">-d</span> <span class="st">&quot;</span><span class="va">$CLAUDE_APP</span><span class="st">/local-agent-mode-sessions&quot;</span> <span class="bu">]</span> <span class="kw">&amp;&amp;</span> <span class="dt">\</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cp</span> <span class="at">-R</span> <span class="st">&quot;</span><span class="va">$CLAUDE_APP</span><span class="st">/local-agent-mode-sessions&quot;</span> <span class="st">&quot;</span><span class="va">$STAGING</span><span class="st">/Claude/&quot;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Config files (skip config.json)</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> f <span class="kw">in</span> claude_desktop_config.json extensions-installations.json <span class="dt">\</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>         cowork-enabled-cli-ops.json git-worktrees.json window-state.json <span class="dt">\</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>         bridge-state.json<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="bu">[</span> <span class="ot">-f</span> <span class="st">&quot;</span><span class="va">$CLAUDE_APP</span><span class="st">/</span><span class="va">$f</span><span class="st">&quot;</span> <span class="bu">]</span> <span class="kw">&amp;&amp;</span> <span class="fu">cp</span> <span class="st">&quot;</span><span class="va">$CLAUDE_APP</span><span class="st">/</span><span class="va">$f</span><span class="st">&quot;</span> <span class="st">&quot;</span><span class="va">$STAGING</span><span class="st">/Claude/&quot;</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Extensions</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="bu">[</span> <span class="ot">-d</span> <span class="st">&quot;</span><span class="va">$CLAUDE_APP</span><span class="st">/Claude Extensions&quot;</span> <span class="bu">]</span> <span class="kw">&amp;&amp;</span> <span class="dt">\</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cp</span> <span class="at">-R</span> <span class="st">&quot;</span><span class="va">$CLAUDE_APP</span><span class="st">/Claude Extensions&quot;</span> <span class="st">&quot;</span><span class="va">$STAGING</span><span class="st">/Claude/&quot;</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="bu">[</span> <span class="ot">-d</span> <span class="st">&quot;</span><span class="va">$CLAUDE_APP</span><span class="st">/Claude Extensions Settings&quot;</span> <span class="bu">]</span> <span class="kw">&amp;&amp;</span> <span class="dt">\</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cp</span> <span class="at">-R</span> <span class="st">&quot;</span><span class="va">$CLAUDE_APP</span><span class="st">/Claude Extensions Settings&quot;</span> <span class="st">&quot;</span><span class="va">$STAGING</span><span class="st">/Claude/&quot;</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Project files referenced by chats</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="bu">[</span> <span class="ot">-d</span> ~/Documents/Claude <span class="bu">]</span> <span class="kw">&amp;&amp;</span> <span class="fu">cp</span> <span class="at">-R</span> ~/Documents/Claude <span class="st">&quot;</span><span class="va">$STAGING</span><span class="st">/Documents-Claude&quot;</span></span></code></pre></div>
+<h2 id="quick-restore-snippet">Quick restore snippet</h2>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="va">CLAUDE_APP</span><span class="op">=</span><span class="st">&quot;</span><span class="va">$HOME</span><span class="st">/Library/Application Support/Claude&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="va">BACKUP</span><span class="op">=</span><span class="st">&quot;/path/to/your/backup&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> <span class="st">&quot;</span><span class="va">$CLAUDE_APP</span><span class="st">&quot;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># IMPORTANT: Claude.app must be quit. Cmd+Q the app first.</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Sessions</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="bu">[</span> <span class="ot">-d</span> <span class="st">&quot;</span><span class="va">$BACKUP</span><span class="st">/Claude/local-agent-mode-sessions&quot;</span> <span class="bu">]</span> <span class="kw">&amp;&amp;</span> <span class="dt">\</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rsync</span> <span class="at">-a</span> <span class="st">&quot;</span><span class="va">$BACKUP</span><span class="st">/Claude/local-agent-mode-sessions/&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>           <span class="st">&quot;</span><span class="va">$CLAUDE_APP</span><span class="st">/local-agent-mode-sessions/&quot;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Config (preserves OLD&#39;s trusted folders + extensions list, keeps NEW device name)</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-c</span> <span class="st">&quot;</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="st">import json</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="st">with open(&#39;</span><span class="va">$BACKUP</span><span class="st">/Claude/claude_desktop_config.json&#39;) as f: old = json.load(f)</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="st">with open(&#39;</span><span class="va">$CLAUDE_APP</span><span class="st">/claude_desktop_config.json&#39;) as f: new = json.load(f)</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="st">merged = old.copy()</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="st">merged[&#39;preferences&#39;][&#39;remoteToolsDeviceName&#39;] = new[&#39;preferences&#39;][&#39;remoteToolsDeviceName&#39;]</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="st">for k, v in new[&#39;preferences&#39;].items():</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="st">    if k not in merged[&#39;preferences&#39;]:</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="st">        merged[&#39;preferences&#39;][k] = v</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="st">with open(&#39;</span><span class="va">$CLAUDE_APP</span><span class="st">/claude_desktop_config.json&#39;, &#39;w&#39;) as f:</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="st">    json.dump(merged, f, indent=2)</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="co"># Extensions</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="fu">rsync</span> <span class="at">-a</span> <span class="st">&quot;</span><span class="va">$BACKUP</span><span class="st">/Claude/Claude Extensions/&quot;</span> <span class="st">&quot;</span><span class="va">$CLAUDE_APP</span><span class="st">/Claude Extensions/&quot;</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="fu">rsync</span> <span class="at">-a</span> <span class="st">&quot;</span><span class="va">$BACKUP</span><span class="st">/Claude/Claude Extensions Settings/&quot;</span> <span class="st">&quot;</span><span class="va">$CLAUDE_APP</span><span class="st">/Claude Extensions Settings/&quot;</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> <span class="st">&quot;</span><span class="va">$BACKUP</span><span class="st">/Claude/extensions-installations.json&quot;</span> <span class="st">&quot;</span><span class="va">$CLAUDE_APP</span><span class="st">/extensions-installations.json&quot;</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="co"># Project files</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> ~/Documents/Claude</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="fu">rsync</span> <span class="at">-a</span> <span class="st">&quot;</span><span class="va">$BACKUP</span><span class="st">/Documents-Claude/&quot;</span> ~/Documents/Claude/</span></code></pre></div>
+<h2 id="account-uuids-are-stable-across-devices">Account UUIDs are
+stable across devices</h2>
+<p>Inside <code>local-agent-mode-sessions/</code> the directory
+structure is <code>&lt;account-uuid&gt;/&lt;sub-uuid&gt;/...</code>.
+After signing into Claude Desktop on a new Mac, both UUIDs will be
+<strong>identical</strong> to your old Mac (assuming same Anthropic
+account). This is convenient for restoration — you don't have to rename
+anything.</p>
+<p>If Anthropic changes this in the future, the recovery pattern would
+be:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Move old data into new UUID dir before copying</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mv</span> <span class="va">$OLD_UUID</span>/<span class="va">$OLD_SUB</span> <span class="va">$NEW_UUID</span>/<span class="va">$NEW_SUB</span></span></code></pre></div>
+<h2 id="notes-on-remotetoolsdevicename">Notes on
+<code>remoteToolsDeviceName</code></h2>
+<p>This field in <code>claude_desktop_config.json</code> is just a
+display name for "which device am I" — used in the cloud UI to
+disambiguate multiple paired devices. Changing it on the new Mac does
+NOT cause it to claim orphan data from an old device-name. The data
+binding is via account UUID, not device name. (Tested empirically;
+renaming did nothing.)</p>
+<footer>Part of <a href="https://github.com/credizian/macos-reset-survival-guide">macos-reset-survival-guide</a> · MIT licensed</footer>
+</body>
+</html>

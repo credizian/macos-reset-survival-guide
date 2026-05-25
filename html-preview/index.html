@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>macOS Reset Survival Guide</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<nav class="top">
+  <a class="current" href="index.html">README</a>
+  <a href="01-lessons-learned.html">Lessons learned</a>
+  <a href="02-cowork-recovery.html">Cowork recovery</a>
+  <a href="03-claude-app-paths.html">Claude.app paths</a>
+  <a href="04-reset-day-playbook.html">Reset playbook</a>
+</nav>
+<header id="title-block-header">
+<h1 class="title">macOS Reset Survival Guide</h1>
+</header>
+<h1 id="macos-reset-survival-guide">macOS Reset Survival Guide</h1>
+<blockquote>
+<p>Everything I learned wiping and restoring my Mac in 2026 — including
+the part where I almost lost my AI chat history, and how I got it
+back.</p>
+</blockquote>
+<p>This repo is the post-mortem of a real Mac reset and restore. It
+contains the scripts I actually ran, the things that broke, the things I
+figured out, and the things I wish someone had told me first. If you're
+about to do a clean install on macOS Sequoia or newer, this should save
+you several hours and at least one minor panic attack.</p>
+<h2 id="reset-day-at-a-glance">Reset day at a glance</h2>
+<pre class="mermaid"><code>gantt
+    title 75-minute Mac clean install + restore
+    dateFormat HH:mm
+    axisFormat %H:%M
+
+    section Pre-flight
+    Sign out of iCloud / iMsg / FaceTime / App Store     :preflt, 00:00, 5m
+
+    section Erase + Setup
+    Erase All Content and Settings (passive)             :erase, after preflt, 10m
+    Setup Assistant (don&#39;t use Migration Assistant)      :setup, after erase, 10m
+
+    section Restore
+    Sign into Mac App Store (required before brew bundle):mas, after setup, 2m
+    restore.sh (Homebrew, casks, configs, app state)     :crit, restore, after mas, 30m
+
+    section Sign-ins
+    ssh-add, gh auth, GitHub Desktop bulk-add (1.5s/repo):signins, after restore, 8m
+    Cloud apps (Dropbox, VS Code Sync, Slack, etc.)      :clouds, after signins, 12m
+
+    section Verify
+    verify-setup.sh + System Settings perms              :ver, after clouds, 8m</code></pre>
+<h2 id="when-cowork-is-empty-after-a-reset">When Cowork is empty after a
+reset</h2>
+<pre class="mermaid"><code>flowchart TD
+    Start([Claude Desktop opens&lt;br/&gt;Cowork tab is empty]) --&gt; Q1{Was Claude.app&lt;br/&gt;data backed up?}
+    Q1 --&gt;|Yes — DMG present| Restore[Quit Claude.app&lt;br/&gt;then rsync from backup&lt;br/&gt;into local-agent-mode-sessions/]
+    Q1 --&gt;|No — but Time Machine&lt;br/&gt;was running| TM[Use the recovery technique →]
+    Q1 --&gt;|No backup at all| Lost([Data is gone&lt;br/&gt;start fresh])
+
+    TM --&gt; DiskUtil[diskutil apfs listSnapshots disk5s2&lt;br/&gt;find pre-reset snapshot]
+    DiskUtil --&gt; Mount[sudo mount_apfs&lt;br/&gt;-o nobrowse,ro,noowners&lt;br/&gt;-s SNAPSHOT_NAME]
+    Mount --&gt; StripACL[chmod -RN destination&lt;br/&gt;strip deny ACLs]
+    StripACL --&gt; Rsync[rsync -rlt --ignore-errors&lt;br/&gt;--no-perms --no-owner --no-group]
+    Rsync --&gt; Cleanup[Remove .BC.T_* temp files&lt;br/&gt;+ copy top-level JSONs separately]
+    Cleanup --&gt; Done([Cowork chats, projects,&lt;br/&gt;scheduled tasks all back])
+
+    Restore --&gt; Done
+
+    style Start fill:#fff3cd,stroke:#856404,color:#000
+    style Done fill:#d4edda,stroke:#155724,color:#000
+    style Lost fill:#f8d7da,stroke:#721c24,color:#000
+    style TM fill:#cce5ff,stroke:#004085,color:#000</code></pre>
+<p>Full step-by-step is in <a
+href="docs/02-cowork-recovery.md"><code>docs/02-cowork-recovery.md</code></a>.</p>
+<hr />
+<h2 id="the-tldr">The TL;DR</h2>
+<p>After a clean install of macOS, my goal was simple: get back to
+"productive in code" in under two hours, without bringing forward years
+of OS cruft. I had three external-drive backups: an encrypted DMG of my
+creds + dotfiles + select app state, a 43 GB rsync mirror of my code (no
+<code>node_modules</code>), and Time Machine on a separate volume.</p>
+<p><strong>It mostly worked.</strong> Restore script ran, code came
+back, configs landed. Then I opened Claude Desktop and <strong>Cowork
+was completely empty</strong> — no scheduled tasks, no projects, no chat
+history under that tab. The local files I'd backed up didn't cover the
+AI app's data dir. What followed was 90 minutes of digging through APFS
+snapshots, fighting macOS ACLs, and ultimately a clean recovery thanks
+to one piece of luck: Time Machine had snapshotted the volume right
+before the wipe.</p>
+<p>This repo captures both the working scripts and the recovery
+technique.</p>
+<h2 id="whats-in-here">What's in here</h2>
+<pre><code>scripts/
+├── restore.sh             # The post-clean-install restore script (run with T9-style external drive)
+├── export-credentials.sh  # Builds the encrypted backup DMG (run BEFORE the reset)
+├── mirror-to-t9.sh        # Rsync your code dir, excluding regenerable cruft
+├── verify-setup.sh        # Post-restore sanity check (24 green checkmarks if you did it right)
+└── Brewfile               # Curated formulae + casks (lessons learned baked in)
+
+docs/
+├── 01-lessons-learned.md  # 23 distinct things that broke or surprised me
+├── 02-cowork-recovery.md  # The APFS snapshot mounting + ACL stripping technique
+├── 03-claude-app-paths.md # What to back up for Claude Desktop / Cowork users
+└── 04-reset-day-playbook.md  # The ordered, time-budgeted checklist</code></pre>
+<h2 id="who-this-is-for">Who this is for</h2>
+<ul>
+<li>Anyone doing a clean macOS install and wants a tested playbook</li>
+<li><strong>Claude Desktop / Cowork users</strong> — Anthropic doesn't
+include those paths in any backup tool I'm aware of, and the data lives
+locally. If you reset without preparing, you can lose months of
+scheduled task history.</li>
+<li>Developers who use Homebrew + a mix of MAS apps + GUI casks and want
+a repeatable Brewfile</li>
+<li>Anyone whose <code>tmutil listbackups</code> shows entries that
+"don't exist" (spoiler: they're APFS snapshots, here's how to mount
+them)</li>
+</ul>
+<h2 id="the-narrative">The narrative</h2>
+<p>If you have 15 minutes, read <a
+href="docs/01-lessons-learned.md"><code>docs/01-lessons-learned.md</code></a>
+— it's the story of what went wrong, what fixed each thing, and what I
+changed in the scripts so it doesn't happen next time.</p>
+<p>If you just want to run things, the <a
+href="docs/04-reset-day-playbook.md">Reset-day playbook</a> is the
+time-budgeted checklist.</p>
+<p>If you're specifically here for "I wiped my Mac and Claude Desktop's
+Cowork is empty, can I get it back?" — go straight to <a
+href="docs/02-cowork-recovery.md"><code>docs/02-cowork-recovery.md</code></a>.</p>
+<h2 id="highlights">Highlights</h2>
+<p>A few of the lessons worth knowing even if you never need this
+guide:</p>
+<ul>
+<li><strong><code>tmutil listbackups</code> shows phantom
+paths</strong>: the entries are real APFS snapshots inside the backup
+volume, but
+<code>/Volumes/.timemachine/&lt;UUID&gt;/&lt;date&gt;.backup/</code>
+doesn't auto-mount them. Use
+<code>diskutil apfs listSnapshots &lt;disk&gt;</code> to find them, then
+<code>mount_apfs -o nobrowse,ro,noowners -s &lt;snapshot-name&gt; &lt;device&gt; &lt;mountpoint&gt;</code>
+to mount.</li>
+<li><strong>macOS ACLs can deny even root</strong> on read-only TM
+snapshots. <code>ditto</code> fails silently on these — even though the
+files are owned by your user. <code>chmod -RN &lt;dest&gt;</code> strips
+ACLs from the destination, then <code>rsync</code> without
+<code>--xattrs</code>/<code>--acls</code> works.</li>
+<li><strong>iCloud Documents Sync stores 0-byte placeholders
+locally</strong> by default. TM backups capture the placeholders, not
+the content. macOS's <code>~/iCloud Drive (Archive)</code> folder is
+your only on-device fallback for files that had been downloaded before
+sync was disabled.</li>
+<li><strong><code>brew bundle install</code>'s npm step runs in a
+non-interactive shell</strong> with no <code>node@24</code> on PATH.
+Every <code>npm "&lt;pkg&gt;"</code> line fails with
+<code>env: node: No such file or directory</code>. Fix:
+<code>export PATH="/opt/homebrew/opt/node@24/bin:$PATH"</code> before
+running it.</li>
+<li><strong>docker-desktop cask fails without sudo pre-creating
+<code>/usr/local/cli-plugins</code></strong>. Brew can't prompt for sudo
+non-interactively. Add
+<code>sudo mkdir -p /usr/local/cli-plugins &amp;&amp; sudo chown $USER /usr/local/cli-plugins</code>
+to your restore script.</li>
+<li><strong><code>mas</code> (Mac App Store CLI) silently skips entries
+if you're not signed into the App Store</strong>. There's no error. Sign
+in via System Settings → Apple ID before running
+<code>brew bundle install</code>.</li>
+<li><strong>GitHub Desktop's repo list isn't portable across
+Macs</strong> (LevelDB lock files are machine-specific, auth is in
+Keychain). But the brew-installed <code>github</code> CLI shim accepts a
+directory and adds it to a running Desktop. Loop
+<code>find ~/code -maxdepth 3 -name .git | sed 's|/.git$||' | while read r; do github "$r"; sleep 0.3; done</code>
+to bulk-add. Throttle the sleep — Desktop's IPC drops messages under
+burst.</li>
+<li><strong>Stable account UUIDs in Claude Desktop</strong> mean the
+Cowork recovery is just a copy, not a rename — the directory structure
+<code>local-agent-mode-sessions/&lt;account-uuid&gt;/&lt;sub-uuid&gt;/</code>
+uses the same UUIDs on the new device after sign-in.</li>
+<li><strong>Firefox 138+ silently superseded
+<code>profiles.ini</code></strong> with a new "Profile Groups" SQLite
+system. Restoring profiles the old way doesn't surface them in the new
+built-in picker. Fix: write a one-line <code>user.js</code>
+(<code>browser.profiles.enabled = false</code>) into each restored
+profile to fall back to legacy behavior.</li>
+<li><strong>GitHub Desktop splits persistence</strong> between Local
+Storage (last-selected-repo pointer) and IndexedDB (actual repo list).
+Bulk-adding via the brew <code>github</code> CLI shim only persists
+fully if Desktop is <strong>already running</strong> during the loop AND
+there's enough throttle (~1.5s) between calls for each IndexedDB write
+to settle.</li>
+</ul>
+<p>There are 17 more in <a
+href="docs/01-lessons-learned.md"><code>docs/01-lessons-learned.md</code></a>.</p>
+<h2 id="generalizing-this">Generalizing this</h2>
+<p>These scripts use a Samsung T9 SSD with two APFS volumes
+(<code>T9 Files</code> for the DMG + code mirror, <code>T9 Backup</code>
+for Time Machine), but the approach generalizes:</p>
+<ol type="1">
+<li>Run <a
+href="scripts/mirror-to-t9.sh"><code>mirror-to-t9.sh</code></a>
+<strong>before</strong> the reset — it rsyncs your code dir excluding
+<code>node_modules</code>, <code>dist</code>, <code>.next</code>,
+<code>.venv</code>, etc. Just change <code>T9</code> to wherever you
+want the mirror.</li>
+<li>Run <a
+href="scripts/export-credentials.sh"><code>export-credentials.sh</code></a>
+<strong>before</strong> the reset — it produces an encrypted DMG of
+credentials + dotfiles + curated app state.</li>
+<li>Wipe and reinstall macOS. Don't use Migration Assistant from the old
+Mac (defeats the point of a clean install).</li>
+<li>Run <a href="scripts/restore.sh"><code>restore.sh</code></a> from
+the external drive after first boot — it brings everything back.</li>
+<li>Run <a
+href="scripts/verify-setup.sh"><code>verify-setup.sh</code></a> when
+restore is done — it pass/warn/fail-checks every major piece.</li>
+</ol>
+<h2 id="end-state">End state</h2>
+<p>After running this end-to-end:</p>
+<ul>
+<li>~90 min hands-on (longest single block: the code rsync, ~20 min over
+USB)</li>
+<li>24-of-24 green checkmarks in verify-setup.sh</li>
+<li>No re-entry of saved DB passwords (auto-restored where possible;
+only the macOS Keychain layer needs re-entry)</li>
+<li>Cowork data restored — even when the backup script missed it the
+first time</li>
+<li>GitHub Desktop showing all repos</li>
+<li>Browser, password manager, work apps all signed in via their own
+cloud sync</li>
+</ul>
+<h2 id="license">License</h2>
+<p>MIT — fork it, adapt it, ship it. The scripts have a few opinionated
+defaults (Node 24, Python 3.13, the specific MAS app IDs I happen to
+use) — those are easy to swap.</p>
+<p>If this saves you an hour, that's a good outcome. If you find a
+lesson #24, <a href="../../issues">open an issue</a> and tell me what
+broke.</p>
+<hr />
+<p><em>Captured during an actual 2026 macOS reset on Apple Silicon (M4).
+Tested end-to-end, including the Cowork recovery part.</em></p>
+<footer>Part of <a href="https://github.com/credizian/macos-reset-survival-guide">macos-reset-survival-guide</a> · MIT licensed</footer>
+</body>
+</html>

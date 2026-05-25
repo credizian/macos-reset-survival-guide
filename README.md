@@ -4,6 +4,59 @@
 
 This repo is the post-mortem of a real Mac reset and restore. It contains the scripts I actually ran, the things that broke, the things I figured out, and the things I wish someone had told me first. If you're about to do a clean install on macOS Sequoia or newer, this should save you several hours and at least one minor panic attack.
 
+## Reset day at a glance
+
+```mermaid
+gantt
+    title 75-minute Mac clean install + restore
+    dateFormat HH:mm
+    axisFormat %H:%M
+
+    section Pre-flight
+    Sign out of iCloud / iMsg / FaceTime / App Store     :preflt, 00:00, 5m
+
+    section Erase + Setup
+    Erase All Content and Settings (passive)             :erase, after preflt, 10m
+    Setup Assistant (don't use Migration Assistant)      :setup, after erase, 10m
+
+    section Restore
+    Sign into Mac App Store (required before brew bundle):mas, after setup, 2m
+    restore.sh (Homebrew, casks, configs, app state)     :crit, restore, after mas, 30m
+
+    section Sign-ins
+    ssh-add, gh auth, GitHub Desktop bulk-add (1.5s/repo):signins, after restore, 8m
+    Cloud apps (Dropbox, VS Code Sync, Slack, etc.)      :clouds, after signins, 12m
+
+    section Verify
+    verify-setup.sh + System Settings perms              :ver, after clouds, 8m
+```
+
+## When Cowork is empty after a reset
+
+```mermaid
+flowchart TD
+    Start([Claude Desktop opens<br/>Cowork tab is empty]) --> Q1{Was Claude.app<br/>data backed up?}
+    Q1 -->|Yes — DMG present| Restore[Quit Claude.app<br/>then rsync from backup<br/>into local-agent-mode-sessions/]
+    Q1 -->|No — but Time Machine<br/>was running| TM[Use the recovery technique →]
+    Q1 -->|No backup at all| Lost([Data is gone<br/>start fresh])
+
+    TM --> DiskUtil[diskutil apfs listSnapshots disk5s2<br/>find pre-reset snapshot]
+    DiskUtil --> Mount[sudo mount_apfs<br/>-o nobrowse,ro,noowners<br/>-s SNAPSHOT_NAME]
+    Mount --> StripACL[chmod -RN destination<br/>strip deny ACLs]
+    StripACL --> Rsync[rsync -rlt --ignore-errors<br/>--no-perms --no-owner --no-group]
+    Rsync --> Cleanup[Remove .BC.T_* temp files<br/>+ copy top-level JSONs separately]
+    Cleanup --> Done([Cowork chats, projects,<br/>scheduled tasks all back])
+
+    Restore --> Done
+
+    style Start fill:#fff3cd,stroke:#856404,color:#000
+    style Done fill:#d4edda,stroke:#155724,color:#000
+    style Lost fill:#f8d7da,stroke:#721c24,color:#000
+    style TM fill:#cce5ff,stroke:#004085,color:#000
+```
+
+Full step-by-step is in [`docs/02-cowork-recovery.md`](docs/02-cowork-recovery.md).
+
 ---
 
 ## The TL;DR
@@ -58,8 +111,10 @@ A few of the lessons worth knowing even if you never need this guide:
 - **`mas` (Mac App Store CLI) silently skips entries if you're not signed into the App Store**. There's no error. Sign in via System Settings → Apple ID before running `brew bundle install`.
 - **GitHub Desktop's repo list isn't portable across Macs** (LevelDB lock files are machine-specific, auth is in Keychain). But the brew-installed `github` CLI shim accepts a directory and adds it to a running Desktop. Loop `find ~/code -maxdepth 3 -name .git | sed 's|/.git$||' | while read r; do github "$r"; sleep 0.3; done` to bulk-add. Throttle the sleep — Desktop's IPC drops messages under burst.
 - **Stable account UUIDs in Claude Desktop** mean the Cowork recovery is just a copy, not a rename — the directory structure `local-agent-mode-sessions/<account-uuid>/<sub-uuid>/` uses the same UUIDs on the new device after sign-in.
+- **Firefox 138+ silently superseded `profiles.ini`** with a new "Profile Groups" SQLite system. Restoring profiles the old way doesn't surface them in the new built-in picker. Fix: write a one-line `user.js` (`browser.profiles.enabled = false`) into each restored profile to fall back to legacy behavior.
+- **GitHub Desktop splits persistence** between Local Storage (last-selected-repo pointer) and IndexedDB (actual repo list). Bulk-adding via the brew `github` CLI shim only persists fully if Desktop is **already running** during the loop AND there's enough throttle (~1.5s) between calls for each IndexedDB write to settle.
 
-There are 15 more in [`docs/01-lessons-learned.md`](docs/01-lessons-learned.md).
+There are 17 more in [`docs/01-lessons-learned.md`](docs/01-lessons-learned.md).
 
 ## Generalizing this
 

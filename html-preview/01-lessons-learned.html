@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>25 Lessons Learned</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<nav class="top">
+  <a href="index.html">README</a>
+  <a class="current" href="01-lessons-learned.html">Lessons learned</a>
+  <a href="02-cowork-recovery.html">Cowork recovery</a>
+  <a href="03-claude-app-paths.html">Claude.app paths</a>
+  <a href="04-reset-day-playbook.html">Reset playbook</a>
+</nav>
+<header id="title-block-header">
+<h1 class="title">25 Lessons Learned</h1>
+</header>
+<h1
+id="23-things-that-broke-or-surprised-me-during-a-2026-macos-clean-install">23
+things that broke (or surprised me) during a 2026 macOS clean
+install</h1>
+<p>These are in roughly the order I hit them. Each one cost me anywhere
+from 30 seconds to an hour. Capturing them so you don't have to repeat
+the journey.</p>
+<hr />
+<h2 id="restore-script-bugs">Restore script bugs</h2>
+<h3
+id="1-mysql-workbenchs-data-dir-is-mysqlworkbench--one-word-no-slash">1.
+MySQL Workbench's data dir is <code>MySQLWorkbench</code> — one word, no
+slash</h3>
+<p>The Application Support dir is
+<code>~/Library/Application Support/MySQLWorkbench/</code> (one word). A
+natural-looking path like
+<code>~/Library/Application Support/MySQL/Workbench/</code> is what my
+first restore script wrote to — and MySQL Workbench then found no saved
+connections because it doesn't look there.</p>
+<p><strong>Fix:</strong>
+<code>cp -R $SRC/MySQL-Workbench/. ~/Library/Application\ Support/MySQLWorkbench/</code></p>
+<h3 id="2-the-mysql-workbench-cask-is-mysqlworkbench--no-dash-either">2.
+The "MySQL Workbench" cask is <code>mysqlworkbench</code> — no dash
+either</h3>
+<p><code>brew install --cask mysql-workbench</code> fails: that cask
+doesn't exist. Brew suggests <code>mysqlworkbench</code>. Easy to
+grep-and-replace once you know.</p>
+<h3 id="3-awscli-was-missing-from-my-brewfile-entirely">3.
+<code>awscli</code> was missing from my Brewfile entirely</h3>
+<p><code>aws sts get-caller-identity</code> failed with "command not
+found" because I had AWS creds restored but no CLI installed. Simple
+omission — add <code>brew "awscli"</code>.</p>
+<h3 id="4-brew-bundle-installs-npm-step-runs-without-node24-on-path">4.
+<code>brew bundle install</code>'s npm step runs without
+<code>node@24</code> on PATH</h3>
+<p>Every <code>npm "&lt;pkg&gt;"</code> line failed with
+<code>env: node: No such file or directory</code>. The fix is one line
+of context: brew bundle shells out via <code>env</code>, which doesn't
+inherit your interactive <code>.zshrc</code> PATH. The patch:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">PATH</span><span class="op">=</span><span class="st">&quot;/opt/homebrew/opt/node@24/bin:</span><span class="va">$PATH</span><span class="st">&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> bundle install <span class="at">--file</span><span class="op">=</span>Brewfile</span></code></pre></div>
+<h3
+id="5-raycasts-encrypted-dbs-from-old-mac--database-exception-on-new-mac">5.
+Raycast's encrypted DBs from old Mac → "Database Exception" on new
+Mac</h3>
+<p>Raycast stores chat/activity data in SQLite databases
+encrypted-at-rest with a key from your <strong>old Mac's
+Keychain</strong>. Keychain doesn't migrate across a clean install, so
+on the new Mac those files are unreadable. Raycast shows a "Database
+Exception" dialog with a Reset button.</p>
+<p><strong>Fix:</strong> exclude <code>raycast-enc.sqlite*</code> and
+<code>raycast-activities-enc.sqlite*</code> from the restore. Let
+Raycast re-init fresh, then sign into cloud sync to recover config.</p>
+<h3 id="6-sshconfig-needs-ignoreunknown-usekeychain-at-global-scope">6.
+<code>~/.ssh/config</code> needs <code>IgnoreUnknown UseKeychain</code>
+at GLOBAL scope</h3>
+<p>Homebrew's openssh (<code>/opt/homebrew/bin/ssh</code>) doesn't
+recognize the <code>UseKeychain</code> directive that Apple's openssh
+accepts. If <code>IgnoreUnknown UseKeychain</code> is buried inside a
+<code>Host</code> block, Homebrew openssh <strong>fails to parse the
+entire file</strong>, breaking all SSH-related tools. It must be at the
+global scope, before any <code>Host</code> block.</p>
+<h3 id="7-no-github-host-key-in-known_hosts-on-a-fresh-mac">7. No GitHub
+host key in <code>known_hosts</code> on a fresh Mac</h3>
+<p>First <code>ssh -T git@github.com</code> fails with "Host key
+verification failed". Fix: pre-populate against GitHub's published
+fingerprints:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-keyscan</span> <span class="at">-t</span> ed25519,ecdsa,rsa github.com <span class="op">&gt;&gt;</span> ~/.ssh/known_hosts</span></code></pre></div>
+<p>GitHub's fingerprints are documented and stable; this is safe to
+automate.</p>
+<h3
+id="8-github-desktops-repo-list-doesnt-migrate--but-brew-installs-a-cli-shim">8.
+GitHub Desktop's repo list doesn't migrate — but brew installs a CLI
+shim</h3>
+<p>The app stores its repo list in LevelDB (machine-specific lock files)
+and auth in Keychain. Neither survives a reset. But
+<code>brew install --cask github</code> installs both the app and a CLI
+shim at <code>/opt/homebrew/bin/github</code>. Loop the shim over your
+code dir to bulk-add:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">find</span> ~/code <span class="at">-maxdepth</span> 3 <span class="at">-name</span> .git <span class="at">-type</span> d <span class="kw">|</span> <span class="fu">sed</span> <span class="st">&#39;s|/.git$||&#39;</span> <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">while</span> <span class="bu">read</span> <span class="va">r</span><span class="kw">;</span> <span class="cf">do</span> <span class="ex">github</span> <span class="st">&quot;</span><span class="va">$r</span><span class="st">&quot;</span><span class="kw">;</span> <span class="fu">sleep</span> 0.3<span class="kw">;</span> <span class="cf">done</span></span></code></pre></div>
+<p>The <code>sleep 0.3</code> is important — Desktop's IPC handler drops
+messages under burst.</p>
+<h3 id="9-macos-rsync-is-too-old-for---infoprogress2">9. macOS rsync is
+too old for <code>--info=progress2</code></h3>
+<p>The system <code>rsync</code> is BSD-derived and predates several
+useful flags. If you want progress output,
+<code>brew install rsync</code> or just drop the flag.</p>
+<h3
+id="10-dropbox-preserves-stale-gitlock-files-from-pre-reset-operations">10.
+Dropbox preserves stale <code>.git/*.lock</code> files from pre-reset
+operations</h3>
+<p>If you keep any git repo under Dropbox, you may find
+<code>.git/index.lock</code>, <code>.git/HEAD.lock</code>,
+<code>.git/objects/maintenance.lock</code> files dated weeks earlier —
+relics of operations interrupted before they could clean up. They block
+<code>git commit</code> with "Another git process seems to be running".
+Sweep them:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">find</span> ~/Dropbox <span class="at">-name</span> <span class="st">&quot;*.lock&quot;</span> <span class="at">-type</span> f <span class="at">-path</span> <span class="st">&quot;*/.git/*&quot;</span> <span class="at">-delete</span></span></code></pre></div>
+<hr />
+<h2 id="reset-day-surprises">Reset-day surprises</h2>
+<h3
+id="11-mas-silently-skips-entries-if-youre-not-signed-into-the-app-store">11.
+<code>mas</code> silently skips entries if you're not signed into the
+App Store</h3>
+<p><code>brew bundle install</code> doesn't error — every
+<code>mas "App Name"</code> line just no-ops. Sign in via System
+Settings → Apple ID → Media &amp; Purchases <strong>before</strong>
+running brew bundle.</p>
+<h3 id="12-mas-account-is-deprecated-post-catalina">12.
+<code>mas account</code> is deprecated post-Catalina</h3>
+<p>You can't programmatically verify App Store sign-in anymore.
+Workaround: if <code>mas list</code> returns anything, you're signed
+in.</p>
+<h3
+id="13-gh-auth-login-doesnt-grant-the-scopes-needed-to-push-ssh-keys">13.
+<code>gh auth login</code> doesn't grant the scopes needed to push SSH
+keys</h3>
+<p><code>gh ssh-key add</code> requires the
+<code>admin:public_key</code> scope, which <code>gh auth login</code>
+doesn't ask for. You need a second step:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> auth refresh <span class="at">-h</span> github.com <span class="at">-s</span> admin:public_key</span></code></pre></div>
+<p>Browser device-flow re-auth. After this,
+<code>gh ssh-key add ~/.ssh/id_ed25519.pub</code> works.</p>
+<h3 id="14-some-ai-tool-shell-out-features-can-leak-passphrases">14.
+Some AI tool shell-out features can leak passphrases</h3>
+<p>If you let an AI assistant shell out a command via a prefix-based
+shell tool, and that command prompts for a passphrase, the prompt may
+not get TTY input — and the user's typed passphrase ends up as the next
+chat message instead. <strong>Always run <code>ssh-add</code> directly
+in Terminal.app</strong>, never through an AI tool's shell-out.</p>
+<h3
+id="15-docker-desktop-cask-fails-without-sudo-pre-creating-usrlocalcli-plugins">15.
+<code>docker-desktop</code> cask fails without sudo pre-creating
+<code>/usr/local/cli-plugins</code></h3>
+<p>The cask post-install needs to create that directory and brew can't
+prompt for sudo non-interactively. The fix is two lines in your restore
+script, before <code>brew bundle install</code>:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> mkdir <span class="at">-p</span> /usr/local/cli-plugins</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> chown <span class="va">$USER</span> /usr/local/cli-plugins</span></code></pre></div>
+<hr />
+<h2 id="the-cowork-recovery-saga">The Cowork recovery saga</h2>
+<h3 id="16-claude-desktop--cowork-data-isnt-in-any-standard-backup">16.
+Claude Desktop / Cowork data isn't in any standard backup</h3>
+<p>The data lives at
+<code>~/Library/Application Support/Claude/local-agent-mode-sessions/</code>
+— outside the usual <code>~/.config</code> or "Library/Application
+Support/{App}" patterns most backup scripts cover. If you don't
+explicitly back it up, a reset wipes your Cowork chats, scheduled tasks,
+projects, and routine run history.</p>
+<h3 id="17-tmutil-listbackups-shows-phantom-paths-after-a-reset">17.
+<code>tmutil listbackups</code> shows phantom paths after a reset</h3>
+<p>On a freshly-set-up Mac with an existing TM destination,
+<code>tmutil listbackups</code> will list pre-reset snapshots — but
+<code>ls /Volumes/.timemachine/&lt;UUID&gt;/&lt;date&gt;.backup/</code>
+returns "No such file or directory". macOS is caching backup metadata
+via <code>com.apple.TimeMachine.inheritance.plist</code>, but
+inheritance is a logical machine-ID remapping; it doesn't preserve
+physical snapshot data.</p>
+<h3
+id="18-pre-reset-backups-do-exist--as-apfs-snapshots-inside-the-backup-volume">18.
+Pre-reset backups <em>do</em> exist — as APFS snapshots inside the
+backup volume</h3>
+<p>The <code>.previous</code> directory you see at the root of the TM
+destination is only the <strong>most recent</strong> backup mounted as a
+filesystem. Older backups exist as <strong>APFS snapshot
+objects</strong> inside the volume's APFS container. Find them:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">diskutil</span> apfs listSnapshots disk5s2   <span class="co"># the device identifier of your TM backup volume</span></span></code></pre></div>
+<h3 id="19-mounting-an-apfs-snapshot-needs-sudo-mount_apfs">19. Mounting
+an APFS snapshot needs <code>sudo mount_apfs</code></h3>
+<p>The snapshots aren't auto-mounted; you have to mount them
+manually:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> mkdir <span class="at">-p</span> /tmp/tm-snap</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> mount_apfs <span class="at">-o</span> nobrowse,ro,noowners <span class="dt">\</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-s</span> com.apple.TimeMachine.<span class="op">&lt;</span>DATE<span class="op">&gt;</span>.backup <span class="dt">\</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  /dev/disk5s2 /tmp/tm-snap</span></code></pre></div>
+<p>Flags worth knowing:</p>
+<ul>
+<li><code>ro</code> = read-only (you can't accidentally damage the
+snapshot)</li>
+<li><code>noowners</code> = ignore stored UIDs (lets you read across
+user ID changes)</li>
+<li><code>-s &lt;snapshot-name&gt;</code> = pick which snapshot</li>
+</ul>
+<p>This is documented in <code>man mount_apfs</code> but doesn't surface
+in Apple's user-facing docs.</p>
+<h3 id="20-stable-account-uuids-save-the-day-for-cowork-recovery">20.
+Stable account UUIDs save the day for Cowork recovery</h3>
+<p>Inside <code>local-agent-mode-sessions/</code>, the path is
+<code>&lt;account-uuid&gt;/&lt;sub-uuid&gt;/&lt;session-data&gt;</code>.
+After signing into the new Mac's Claude Desktop, <strong>both UUIDs
+match the old Mac</strong> — Anthropic uses stable account-tied UUIDs,
+not per-device random ones. The recovery is a copy, not a rename.</p>
+<h3
+id="21-ditto-fails-on-macos-deny-acls-that-even-root-cant-bypass">21.
+<code>ditto</code> fails on macOS deny ACLs that even root can't
+bypass</h3>
+<p><code>ditto $OLD $NEW</code> is the canonical macOS
+preserve-everything copy tool — but it fails on the nested
+<code>.claude/projects/&lt;hash&gt;/&lt;msg-uuid&gt;.jsonl</code> chat
+transcripts. Why? The destination dirs from a partial earlier copy have
+ACLs like:</p>
+<pre><code>group:everyone deny add_file,delete,add_subdirectory,delete_child,writeattr,writeextattr,chown</code></pre>
+<p>ACLs override Unix permissions even for file owners. ditto's attempt
+to preserve those ACLs onto the destination causes write failures.</p>
+<p><strong>Working approach:</strong></p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> <span class="at">-RN</span> <span class="op">&lt;</span>dest<span class="op">&gt;</span>   <span class="co"># strip ACLs from destination</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rsync</span> <span class="at">-rlt</span> <span class="at">--ignore-errors</span> <span class="at">--no-perms</span> <span class="at">--no-owner</span> <span class="at">--no-group</span> <span class="dt">\</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--chmod</span><span class="op">=</span>u+rwX,go-rwx <span class="op">&lt;</span>src<span class="op">&gt;</span>/ <span class="op">&lt;</span>dest<span class="op">&gt;</span>/</span></code></pre></div>
+<h3
+id="22-icloud-drives-optimize-storage-leaves-0-byte-placeholders">22.
+iCloud Drive's "Optimize Storage" leaves 0-byte placeholders</h3>
+<p>Your <code>~/Documents</code> may look mostly empty in a TM snapshot
+— because iCloud Documents Sync stores files only in the cloud with
+0-byte local placeholder files. TM backs up the placeholders, not the
+content.</p>
+<p><strong>Fallback:</strong> macOS creates
+<code>~/iCloud Drive (Archive)/</code> when you disable iCloud Documents
+Sync. This Archive contains the actual content of files that had been
+previously downloaded locally. Pure-cloud files are only recoverable by
+signing back into iCloud.</p>
+<h3
+id="23-renaming-remotetoolsdevicename-doesnt-claim-orphan-cowork-data">23.
+Renaming <code>remoteToolsDeviceName</code> doesn't claim orphan Cowork
+data</h3>
+<p>Tempting hypothesis: maybe Cowork data is keyed off the device name
+in <code>claude_desktop_config.json</code>, and renaming the new Mac to
+match the old (<code>mac-attlocal-net</code> or whatever) makes the data
+appear. <strong>It doesn't.</strong> The data binding is via the account
+UUID inside <code>local-agent-mode-sessions/</code>. Don't rename the
+device — copy the data.</p>
+<hr />
+<h2 id="more-day-2-discoveries">More day-2 discoveries</h2>
+<h3
+id="24-firefox-138-profile-groups-silently-supersedes-profilesini">24.
+Firefox 138+ "Profile Groups" silently supersedes
+<code>profiles.ini</code></h3>
+<p>You restore your <code>Profiles/</code> directory and all of
+<code>profiles.ini</code>, launch Firefox, and the new built-in profile
+picker shows... only a "Create a profile" button. None of your restored
+profiles appear. The reason: Firefox 138+ added a <strong>Profile
+Groups</strong> system stored in SQLite at
+<code>~/Library/Application Support/Firefox/Profile Groups/&lt;groupId&gt;.sqlite</code>.
+The new picker reads from those databases — NOT from
+<code>profiles.ini</code>. Your pre-138 backup never had Profile Groups,
+so the new picker has no record of your profiles.</p>
+<p><strong>Schema of <code>&lt;groupId&gt;.sqlite</code>
+<code>Profiles</code> table:</strong></p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> Profiles (</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">id</span> <span class="dt">INTEGER</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  path TEXT <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">UNIQUE</span>,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  name TEXT <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  avatar TEXT <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  themeId TEXT <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  themeFg TEXT <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  themeBg TEXT <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">PRIMARY</span> <span class="kw">KEY</span>(<span class="kw">id</span>)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>);</span></code></pre></div>
+<p><strong>Two-line fix</strong> — write a <code>user.js</code> into
+your restored profile directories to disable the new picker
+entirely:</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> prof <span class="kw">in</span> ~/Library/Application\ Support/Firefox/Profiles/<span class="pp">*</span>/<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="bu">echo</span> <span class="st">&#39;user_pref(&quot;browser.profiles.enabled&quot;, false);&#39;</span> <span class="op">&gt;</span> <span class="st">&quot;</span><span class="va">$prof</span><span class="st">/user.js&quot;</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<p>Firefox falls back to the legacy <code>profiles.ini</code> behavior.
+Use <code>about:profiles</code> inside the browser to switch between
+them.</p>
+<p>If <code>user.js</code> doesn't take effect on some builds (because
+the pref is checked before profile selection), the next-level fix is an
+Enterprise Policies file at
+<code>/Library/Application Support/Mozilla/distribution/policies.json</code>
+— that applies pre-profile-selection at the OS level.</p>
+<h3
+id="25-github-desktop-persistence-is-split--local-storage-vs-indexeddb">25.
+GitHub Desktop persistence is split — Local Storage vs IndexedDB</h3>
+<p>Bulk-adding repos via the brew-installed <code>github</code> CLI shim
+works at first launch, but on next cold start of Desktop, your sidebar
+shows only ONE repo (the last one you selected). All other repos seem to
+have vanished.</p>
+<p>The cause is GitHub Desktop's split storage:</p>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>What it stores</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Local Storage/leveldb/</code></td>
+<td>Account info, app version,
+<strong>last-selected-repository-id</strong>, feature flags</td>
+</tr>
+<tr>
+<td><code>IndexedDB/file__0.indexeddb.leveldb/</code></td>
+<td>The <strong>actual repo list</strong> — paths, remotes, last-fetched
+timestamps</td>
+</tr>
+</tbody>
+</table>
+<p>When Desktop cold-starts, it reads
+<code>last-selected-repository-id</code> from Local Storage and loads
+only that repo's metadata. The sidebar isn't re-populated from IndexedDB
+until something (manual UI add, sign-in event, refresh) triggers it.</p>
+<p><strong>Fix:</strong> the bulk-add works correctly when Desktop is
+<strong>already running</strong> during the loop. Each
+<code>github &lt;path&gt;</code> call sends an IPC message that triggers
+both an IndexedDB write AND a live sidebar update. Use a 1.5-second
+throttle so each repo's metadata fully settles before the next call:</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Launch GitHub Desktop and sign in FIRST. Then:</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">find</span> ~/code <span class="at">-maxdepth</span> 3 <span class="at">-name</span> .git <span class="at">-type</span> d <span class="kw">|</span> <span class="fu">sed</span> <span class="st">&#39;s|/.git$||&#39;</span> <span class="kw">|</span> <span class="fu">sort</span> <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">while</span> <span class="bu">read</span> <span class="va">r</span><span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="ex">github</span> <span class="st">&quot;</span><span class="va">$r</span><span class="st">&quot;</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sleep</span> 1.5</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">done</span></span></code></pre></div>
+<p>Verification — peek at IndexedDB to count persisted repos without
+quitting Desktop:</p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="va">IDB</span><span class="op">=</span><span class="st">&quot;</span><span class="va">$HOME</span><span class="st">/Library/Application Support/GitHub Desktop/IndexedDB/file__0.indexeddb.leveldb&quot;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> f <span class="kw">in</span> <span class="st">&quot;</span><span class="va">$IDB</span><span class="st">&quot;</span>/<span class="pp">*</span><span class="kw">;</span> <span class="cf">do</span> <span class="fu">strings</span> <span class="st">&quot;</span><span class="va">$f</span><span class="st">&quot;</span> <span class="dv">2</span><span class="op">&gt;</span>/dev/null<span class="kw">;</span> <span class="cf">done</span> <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">grep</span> <span class="at">-oE</span> <span class="st">&quot;/Users/</span><span class="va">$USER</span><span class="st">/&lt;your-code-dir&gt;/[a-zA-Z0-9_-]+&quot;</span> <span class="kw">|</span> <span class="fu">sort</span> <span class="at">-u</span> <span class="kw">|</span> <span class="fu">wc</span> <span class="at">-l</span></span></code></pre></div>
+<hr />
+<h2 id="time-to-productive">Time to productive</h2>
+<p>After incorporating these fixes back into the scripts, a fresh reset
+is about <strong>75 minutes hands-on</strong>:</p>
+<ul>
+<li>5 min pre-flight (sign out of iCloud / iMessage / FaceTime / App
+Store, T9 plugged in, password confirmed)</li>
+<li>10 min erase + reinstall</li>
+<li>10 min Setup Assistant</li>
+<li>25-30 min restore.sh runs (mostly waiting on brew bundle +
+rsync)</li>
+<li>15-20 min sign-ins (iCloud, Slack, ClickUp, VS Code Sync, etc.)</li>
+<li>5 min verify-setup.sh review</li>
+</ul>
+<p>Productive on code after ~50 minutes. Fully clean ~75.</p>
+<footer>Part of <a href="https://github.com/credizian/macos-reset-survival-guide">macos-reset-survival-guide</a> · MIT licensed</footer>
+</body>
+</html>

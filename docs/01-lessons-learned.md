@@ -141,6 +141,68 @@ Tempting hypothesis: maybe Cowork data is keyed off the device name in `claude_d
 
 ---
 
+## More day-2 discoveries
+
+### 24. Firefox 138+ "Profile Groups" silently supersedes `profiles.ini`
+You restore your `Profiles/` directory and all of `profiles.ini`, launch Firefox, and the new built-in profile picker shows... only a "Create a profile" button. None of your restored profiles appear. The reason: Firefox 138+ added a **Profile Groups** system stored in SQLite at `~/Library/Application Support/Firefox/Profile Groups/<groupId>.sqlite`. The new picker reads from those databases — NOT from `profiles.ini`. Your pre-138 backup never had Profile Groups, so the new picker has no record of your profiles.
+
+**Schema of `<groupId>.sqlite` `Profiles` table:**
+```sql
+CREATE TABLE Profiles (
+  id INTEGER NOT NULL,
+  path TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  avatar TEXT NOT NULL,
+  themeId TEXT NOT NULL,
+  themeFg TEXT NOT NULL,
+  themeBg TEXT NOT NULL,
+  PRIMARY KEY(id)
+);
+```
+
+**Two-line fix** — write a `user.js` into your restored profile directories to disable the new picker entirely:
+```bash
+for prof in ~/Library/Application\ Support/Firefox/Profiles/*/; do
+  echo 'user_pref("browser.profiles.enabled", false);' > "$prof/user.js"
+done
+```
+
+Firefox falls back to the legacy `profiles.ini` behavior. Use `about:profiles` inside the browser to switch between them.
+
+If `user.js` doesn't take effect on some builds (because the pref is checked before profile selection), the next-level fix is an Enterprise Policies file at `/Library/Application Support/Mozilla/distribution/policies.json` — that applies pre-profile-selection at the OS level.
+
+### 25. GitHub Desktop persistence is split — Local Storage vs IndexedDB
+Bulk-adding repos via the brew-installed `github` CLI shim works at first launch, but on next cold start of Desktop, your sidebar shows only ONE repo (the last one you selected). All other repos seem to have vanished.
+
+The cause is GitHub Desktop's split storage:
+
+| Location | What it stores |
+|---|---|
+| `Local Storage/leveldb/` | Account info, app version, **last-selected-repository-id**, feature flags |
+| `IndexedDB/file__0.indexeddb.leveldb/` | The **actual repo list** — paths, remotes, last-fetched timestamps |
+
+When Desktop cold-starts, it reads `last-selected-repository-id` from Local Storage and loads only that repo's metadata. The sidebar isn't re-populated from IndexedDB until something (manual UI add, sign-in event, refresh) triggers it.
+
+**Fix:** the bulk-add works correctly when Desktop is **already running** during the loop. Each `github <path>` call sends an IPC message that triggers both an IndexedDB write AND a live sidebar update. Use a 1.5-second throttle so each repo's metadata fully settles before the next call:
+
+```bash
+# Launch GitHub Desktop and sign in FIRST. Then:
+find ~/code -maxdepth 3 -name .git -type d | sed 's|/.git$||' | sort | \
+  while read r; do
+    github "$r"
+    sleep 1.5
+  done
+```
+
+Verification — peek at IndexedDB to count persisted repos without quitting Desktop:
+```bash
+IDB="$HOME/Library/Application Support/GitHub Desktop/IndexedDB/file__0.indexeddb.leveldb"
+for f in "$IDB"/*; do strings "$f" 2>/dev/null; done | \
+  grep -oE "/Users/$USER/<your-code-dir>/[a-zA-Z0-9_-]+" | sort -u | wc -l
+```
+
+---
+
 ## Time to productive
 
 After incorporating these fixes back into the scripts, a fresh reset is about **75 minutes hands-on**:
