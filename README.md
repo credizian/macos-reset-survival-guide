@@ -78,10 +78,11 @@ scripts/
 └── Brewfile               # Curated formulae + casks (lessons learned baked in)
 
 docs/
-├── 01-lessons-learned.md  # 23 distinct things that broke or surprised me
-├── 02-cowork-recovery.md  # The APFS snapshot mounting + ACL stripping technique
-├── 03-claude-app-paths.md # What to back up for Claude Desktop / Cowork users
-└── 04-reset-day-playbook.md  # The ordered, time-budgeted checklist
+├── 01-lessons-learned.md         # 31 distinct things that broke or surprised me
+├── 02-cowork-recovery.md         # The APFS snapshot mounting + ACL stripping technique
+├── 03-claude-app-paths.md        # What to back up for Claude Desktop / Cowork users
+├── 04-reset-day-playbook.md      # The ordered, time-budgeted checklist
+└── 05-wiping-old-backup-drive.md # Returning the backup drive without losing migration-missed files
 ```
 
 ## Who this is for
@@ -113,8 +114,10 @@ A few of the lessons worth knowing even if you never need this guide:
 - **Stable account UUIDs in Claude Desktop** mean the Cowork recovery is just a copy, not a rename — the directory structure `local-agent-mode-sessions/<account-uuid>/<sub-uuid>/` uses the same UUIDs on the new device after sign-in.
 - **Firefox 138+ silently superseded `profiles.ini`** with a new "Profile Groups" SQLite system. Restoring profiles the old way doesn't surface them in the new built-in picker. Fix: write a one-line `user.js` (`browser.profiles.enabled = false`) into each restored profile to fall back to legacy behavior.
 - **GitHub Desktop splits persistence** between Local Storage (last-selected-repo pointer) and IndexedDB (actual repo list). Bulk-adding via the brew `github` CLI shim only persists fully if Desktop is **already running** during the loop AND there's enough throttle (~1.5s) between calls for each IndexedDB write to settle.
+- **Curated migration scripts have a blind spot — they don't sweep `~/` root.** Two days after my "successful" reset, a `comm -23` between snapshot `~/` and live `~/` surfaced ~100 missing files: 17 private keys (`.pem` / `.keystore`), 5 SQL dumps, a 45 MB Cognito user-pool export, and ~25 AI tool config dirs with API credentials. None of them broke anything visible — but losing the backup drive without checking would have been the kind of mistake you only notice three months later. Fix: add a catch-all denylisted tar of `~/` to the backup script. See [`docs/05-wiping-old-backup-drive.md`](docs/05-wiping-old-backup-drive.md) for the diff-and-rescue procedure.
+- **SSD "secure erase" is cryptographic, not physical.** Multi-pass overwrites on SSDs are theater because wear-leveling silently maps logical writes to different physical cells than the ones holding old data. Disk Utility's "Security Options" pane on a USB SSD greys out everything except "Fastest" — and that's correct. Paranoid extra: `dd if=/dev/urandom of=/Volumes/<name>/junk.bin bs=1m` (until "no space left") forces fresh writes that exercise wear-leveling against every cell.
 
-There are 17 more in [`docs/01-lessons-learned.md`](docs/01-lessons-learned.md).
+There are 21 more in [`docs/01-lessons-learned.md`](docs/01-lessons-learned.md).
 
 ## Generalizing this
 
@@ -141,7 +144,7 @@ After running this end-to-end:
 
 MIT — fork it, adapt it, ship it. The scripts have a few opinionated defaults (Node 24, Python 3.13, the specific MAS app IDs I happen to use) — those are easy to swap.
 
-If this saves you an hour, that's a good outcome. If you find a lesson #24, [open an issue](../../issues) and tell me what broke.
+If this saves you an hour, that's a good outcome. If you find a lesson #32, [open an issue](../../issues) and tell me what broke.
 
 ---
 

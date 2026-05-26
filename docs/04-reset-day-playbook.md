@@ -143,6 +143,33 @@ bash "/Volumes/T9 Files/mac-reset-backup/verify-setup.sh"
 
 Read every ✗ and ! and resolve before declaring done.
 
+## Verify completeness (~5 min) — catch what the curated backup missed
+
+The migration script copies named subdirectories. It does NOT sweep `~/` root or hidden tool dirs you forgot to enumerate. Run this diff to surface gaps **while you still have the snapshot** (don't wipe the backup drive until this step is clean — see lesson 26 + `docs/05-wiping-old-backup-drive.md`):
+
+```bash
+# Mount the most-recent pre-reset APFS snapshot
+sudo mkdir -p /tmp/snap-mount
+diskutil apfs listSnapshots disk5s2   # find the latest pre-reset snapshot name
+sudo mount_apfs -o nobrowse,ro,noowners \
+  -s "com.apple.TimeMachine.YYYY-MM-DD-HHMMSS.backup" /dev/disk5s2 /tmp/snap-mount
+
+# Locate the user home root inside the snapshot
+ls /tmp/snap-mount/*.backup/                                       # check schema
+SNAPHOME="/tmp/snap-mount/<date>.backup/<Data-or-Macintosh HD - Data>/Users/$USER"
+
+# Find files that exist in snapshot but NOT in live ~/
+comm -23 <(ls -A "$SNAPHOME" | sort) <(ls -A ~/ | sort)
+```
+
+Any output is a missed file. For each one, decide: restore to `~/`, archive to Dropbox, or discard.
+
+Common discoveries:
+- Private keys (`*.pem`, `*.key`, `*.keystore`) at `~/` root
+- Database dumps (`*.sql`)
+- One-off scripts and JSON exports
+- Hidden AI tool dirs (`.cursor`, `.codeium`, `.continue`, etc.) with login state
+
 ## Cleanup (same week)
 
 - [ ] Rotate any plaintext API keys that were in `.zshrc` — move them to a secret manager

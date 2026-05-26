@@ -9,6 +9,7 @@
 #     dotfiles/     .gitconfig, .zshrc, .zprofile, .zshenv, .zsh_history
 #     claude/       ~/.claude (Claude Code CLI config, NOT desktop app)
 #     config/       ~/.config (gh, gcloud, git, etc.)
+#     home-root.tar.gz   CATCH-ALL of ~/ (minus caches/code) — see lesson 26
 #   app-state/
 #     MySQL-Workbench/     Saved connections + scripts + sql_history
 #     Sublime-Text/        Packages + Lib + Local + Log
@@ -17,6 +18,12 @@
 #     Claude/              local-agent-mode-sessions, settings, extensions
 #     Documents-Claude/    Project files referenced by Cowork chats
 #     preferences/         Curated .plist files
+#
+# The home-root.tar.gz catches what the curated copies above MISS — the random
+# PEM keys, SQL dumps, Cognito exports, AI tool configs (.cloudflared, .azure,
+# .docker, etc.), and any other ~/ root one-offs accumulated over years. This
+# is the lesson from day 3 of the 2026 reset (see docs/01 lessons 26-31 and
+# docs/05 for the full wipe-and-rediscover procedure).
 #
 # NOT included (these come back via sign-in to the app's own cloud):
 #   VS Code Sync, Cursor Sync, browser profiles (Firefox/Chrome bookmarks
@@ -100,6 +107,48 @@ for p in com.oracle.workbench.MySQLWorkbench com.sublimetext.4 \
          com.raycast.macos com.googlecode.iterm2; do
   [ -f "$PREFS/$p.plist" ] && cp "$PREFS/$p.plist" "$STAGING/app-state/preferences/" 2>/dev/null || true
 done
+
+# --- HOME ROOT CATCH-ALL ---
+# Curated copies above capture what we REMEMBER to enumerate. This sweep
+# catches what we DON'T — the random PEM keys, SQL dumps, JSON exports, and
+# hidden AI-tool config dirs that accumulate at ~/ root over years.
+#
+# Without this: post-restore, a `comm -23` between snapshot ~/ and live ~/
+# typically reveals 50-100 missed files. See docs/05-wiping-old-backup-drive.md
+# for the diff-find procedure.
+#
+# Exclude list is a DENYLIST (skip caches and code we have elsewhere). Keep
+# the file-format excludes generous: an unneeded file in the backup is cheap;
+# a missing private key is expensive.
+echo ""
+echo "Building home-root catch-all sweep (this is the broad insurance layer)..."
+tar -czf "$STAGING/credentials/home-root.tar.gz" -C "$HOME" . \
+  --exclude='./a_code_project' --exclude='./code' --exclude='./src' \
+  --exclude='./Library' --exclude='./node_modules' --exclude='./venv' \
+  --exclude='./nltk_data' --exclude='./Documents/Claude' \
+  --exclude='./.ollama' --exclude='./.gradle' --exclude='./.konan' \
+  --exclude='./.virtualenvs' --exclude='./.gem' \
+  --exclude='./.npm' --exclude='./.yarn' --exclude='./.pnpm-store' \
+  --exclude='./.cache' --exclude='./.nvm' --exclude='./.pyenv' \
+  --exclude='./.rustup' --exclude='./.cargo' --exclude='./.m2' --exclude='./.ivy2' \
+  --exclude='./.sbt' --exclude='./.cocoapods' --exclude='./.bun' \
+  --exclude='./.Trash' --exclude='./.DS_Store' \
+  --exclude='./Dropbox' --exclude='./OneDrive*' \
+  --exclude='./iCloud Drive (Archive)' \
+  --exclude='Cache' --exclude='Code Cache' --exclude='CachedData' \
+  --exclude='GPUCache' --exclude='Crashpad' --exclude='blob_storage' \
+  --exclude='Service Worker' --exclude='Session Storage' \
+  --exclude='Local Storage' --exclude='IndexedDB' \
+  --exclude='avd' --exclude='build-cache' \
+  --exclude='java_error*.log' --exclude='jbr_err*.log' \
+  --exclude='firebase-debug.log' \
+  2>/dev/null || true
+echo "Home-root sweep: $(du -sh "$STAGING/credentials/home-root.tar.gz" | cut -f1)"
+
+# Verify the keys actually made it into the sweep
+KEY_COUNT=$(tar -tzf "$STAGING/credentials/home-root.tar.gz" 2>/dev/null \
+  | grep -cE '\.pem$|\.key$|keystore$' || echo 0)
+echo "Private keys captured in home-root.tar.gz: $KEY_COUNT"
 
 echo ""
 echo "Staged:"

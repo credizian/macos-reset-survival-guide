@@ -1,4 +1,4 @@
-# 23 things that broke (or surprised me) during a 2026 macOS clean install
+# 31 things that broke (or surprised me) during a 2026 macOS clean install
 
 These are in roughly the order I hit them. Each one cost me anywhere from 30 seconds to an hour. Capturing them so you don't have to repeat the journey.
 
@@ -199,6 +199,92 @@ Verification — peek at IndexedDB to count persisted repos without quitting Des
 IDB="$HOME/Library/Application Support/GitHub Desktop/IndexedDB/file__0.indexeddb.leveldb"
 for f in "$IDB"/*; do strings "$f" 2>/dev/null; done | \
   grep -oE "/Users/$USER/<your-code-dir>/[a-zA-Z0-9_-]+" | sort -u | wc -l
+```
+
+---
+
+## Day-3 wipe-day discoveries
+
+Three days after the reset I returned the borrowed backup SSD. Verifying parity before wiping it revealed gaps the original "curated subset" migration silently missed.
+
+### 26. Curated migration scripts have a blind spot — they don't sweep `~/` root
+The original `export-credentials.sh` captured named subdirectories (`.ssh`, `.aws`, `.config`, specific app-state dirs). It did NOT capture the ~100 files that had accumulated at `~/` root over years — and the restore had no way to bring them back.
+
+Comparing snapshot's `~/` to live `~/` via `comm -23` surfaced what was missing:
+- **~17 private keys** (AWS instance `.pem`s, GitLab key, Oracle Cloud SSH key, Android `debug.keystore` + signing keystore, Teams keys)
+- **SQL dumps** (4 production DB exports, total ~10 MB)
+- **Cognito user-pool JSON export** (45 MB single file)
+- **Python utility scripts** (delete-cog-dyn, delete-spam, account-summary)
+- **~25 hidden AI tool config dirs** containing API keys / login state (`.cloudflared`, `.snowflake`, `.azure`, `.docker`, `.cursor`, `.codeium`, `.continue`, `.windsurf`, etc.)
+- **Personal media** (mp3 recording, IMG_*, Outlook export docx + pdf)
+- **Project dirs not under `~/code`** (`PycharmProjects`, `CascadeProjects`, `ses-templates`)
+
+**Lesson:** any backup script needs a **catch-all flat sweep** of `~/` with an *exclude* list, not just an *include* list. Easier to enumerate what to skip (caches, package-manager dirs, models) than to remember every random file you've dropped in `~/` for the last 5 years.
+
+The diff to find this kind of gap on YOUR machine:
+```bash
+comm -23 \
+  <(ls -A /path/to/snapshot/Data/Users/$USER/ | sort) \
+  <(ls -A ~/ | sort)
+```
+
+### 27. Desktop and Downloads get forgotten because they're "just clutter"
+Default-untouched by curated backups, but contain one-off-but-irreplaceable items: LinkedIn data exports, employer pay slips, board meeting PDFs, downloaded credentials CSVs, certificate signing requests. ~45 MB across both folders for me, ~80 files — 95% junk and 5% irreplaceable.
+
+Always include `~/Desktop` and `~/Downloads` in any pre-reset tar.
+
+### 28. Tar exclude-list iteration — the silent bloat problem
+My first home-folder tar attempt produced a **43 GB** archive instead of the expected ~2 GB. The culprits were three categories I forgot to exclude:
+
+- **`a_code_project/`** — already on the live Mac + GitHub (verified earlier with HEAD + dirty-count parity check). Including it was pure duplication.
+- **Package-manager caches**: `.npm`, `.yarn`, `.pnpm-store`, `.cache`, `.nvm`, `.pyenv`, `.rustup`, `.cargo`, `.m2`, `.ivy2`, `.sbt`, `.cocoapods`, `.bun`. All regen-on-demand.
+- **Tool internal state subdirs** named `Cache`, `Code Cache`, `CachedData`, `GPUCache`, `IndexedDB`, `Local Storage`, `Service Worker`. Common to every Electron app + many AI tools.
+
+After adding those to `--exclude`, the archive dropped to **3.8 GB** — same content fidelity, no useful loss. Repeated iteration was the actual cost: every wrong attempt wastes ~5-10 min on USB-SSD read.
+
+**Pattern**: AI tool dirs (`.cursor`, `.windsurf`, `.codeium`, `.continue`, `.augment`, `.qoder`, `.trae`, `.kiro`, `.codex`, `.warp`, plus ~15 others) are typically 95% cache wrapping 5% real config. If you're skeptical, exclude the whole tool dir — login + re-config on the new machine is 30 seconds per tool.
+
+### 29. SSD "secure erase" is cryptographic, not physical
+Multi-pass overwrites on SSDs are theater because wear-leveling maps logical writes to different physical cells than the ones holding your old data. macOS Disk Utility's "Security Options" on a USB SSD greys out everything except "Fastest" — and **that's the correct option**.
+
+Real SSD wipe = one of:
+- **Drop the encryption key** (instant) — only works if volume was encrypted-at-rest
+- **TRIM the entire volume** (drive does it internally after format)
+- **Paranoid extra**: fill the new empty volume with `/dev/urandom` to force fresh writes that exercise wear-leveling against every cell
+
+```bash
+dd if=/dev/urandom of=/Volumes/<name>/junk.bin bs=1m
+# Runs ~15-30 min on 1 TB USB-C SSD, ends with "No space left" (expected)
+rm /Volumes/<name>/junk.bin
+```
+
+### 30. Time Machine destinations must be removed BEFORE wiping
+If your backup volume is registered as a TM destination, erasing it leaves `tmutil` with a phantom reference that errors on every backup attempt. Clear it cleanly first:
+
+```bash
+tmutil destinationinfo                              # find the ID
+sudo tmutil removedestination <DESTINATION-UUID>   # unregister it
+```
+
+If destination shows "No destinations configured" already → you're fine (TM noticed it disappeared when you ejected the drive).
+
+### 31. APFS snapshots on TM destinations: path structure varies by snapshot age
+On the same backup volume, two snapshots from different dates can have different internal structure:
+
+```bash
+# Newer (post-Sequoia TM schema):
+/snap-mount/<date>.backup/Macintosh HD - Data/Users/$USER/...
+
+# Older (pre-Sequoia or different TM version):
+/snap-mount/<date>.backup/Data/Users/$USER/...
+```
+
+Always `ls` the snapshot's `<date>.backup/` first to confirm which schema you're dealing with. Don't assume — I burned 5 min on a "No such file or directory" when an older snapshot used the shorter path.
+
+Also: read-only snapshot mounts with `noowners` flag work without sudo as long as file permissions allow your UID to read. If your first `tar` attempt with sudo creates a root-owned archive, the non-sudo retry can't overwrite it cleanly. Test read access with a simple `cat <one-file>` before deciding sudo is needed:
+
+```bash
+cat /snap-mount/.../Users/$USER/some-file && echo "no sudo needed"
 ```
 
 ---
